@@ -6,7 +6,7 @@ resource "aws_iam_group" "iam_group" {
 resource "aws_iam_policy" "iam_policy-group" {
     name = "iam_policy_group"
     description = "Json policy for IAM Group"
-    policy = file()
+    policy = file(var.iam_group_policy_json_file_path)
 }
 
 resource "aws_iam_group_policy_attachment" "iam_policy_attach_group" {
