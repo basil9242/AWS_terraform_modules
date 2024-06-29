@@ -28,6 +28,7 @@
 | <a name="input_iam_user_name"></a> [iam\_user\_name](#input\_iam\_user\_name) | IAM user name | `string` | `""` | no |
 | <a name="input_iam_user_path"></a> [iam\_user\_path](#input\_iam\_user\_path) | IAM user path ,default value is '/'(example:'/system/') | `string` | `"/"` | no |
 | <a name="input_iam_user_policy_json_file_path"></a> [iam\_user\_policy\_json\_file\_path](#input\_iam\_user\_policy\_json\_file\_path) | iam user policy json file | `file` | `null` | no |
+| <a name="input_iam_user_policy_name"></a> [iam\_user\_policy\_name](#input\_iam\_user\_policy\_name) | iam user policy name | `string` | `null` | no |
 | <a name="input_iam_user_tags"></a> [iam\_user\_tags](#input\_iam\_user\_tags) | IAM user tags (example:Environment = 'Production' Department  = 'IT') | `map(string)` | `null` | no |
 | <a name="input_policy_arn"></a> [policy\_arn](#input\_policy\_arn) | IAM policy arn for IAM group | `string` | `null` | no |
 

@@ -12,7 +12,7 @@ resource "aws_iam_user_login_profile" "iam_user_login" {
 
 resource "aws_iam_group_membership" "iam_group_member" {
   count = var.iam_group_yes_no ? 1:0
-  name = "iam_group_member"
+  name = var.iam_user_policy_name
   users = [
     aws_iam_group.iam_group.name
   ]

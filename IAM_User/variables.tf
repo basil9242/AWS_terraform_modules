@@ -23,6 +23,12 @@ variable "iam_user_policy_json_file_path" {
     default = null
 }
 
+variable "iam_user_policy_name" {
+    description = "iam user policy name"
+    type = string
+    default = null
+}
+
 # IAM Group
 
 variable "iam_group_yes_no" {
