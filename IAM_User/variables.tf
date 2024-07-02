@@ -19,7 +19,7 @@ variable "iam_user_tags" {
 
 variable "iam_user_policy_json_file_path" {
     description = "iam user policy json file"
-    type = file
+    type = string
     default = null
 }
 
@@ -59,7 +59,7 @@ variable "iam_policy_json_file" {
 
 variable "iam_group_policy_json_file_path" {
     description = "JSON file path if iam policy json file is true"
-    type = file
+    type = string
     default = null
 }
 
