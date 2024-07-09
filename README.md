@@ -1,2 +1,2 @@
 # AWS_terraform_modules
-terraform modules for was resources
+terraform modules for AWS resources

@@ -47,3 +47,21 @@ variable "route_table_name" {
     type = string
     default = ""  
 }
+
+variable "vpc_cloudwatch_logs_group_name" {
+  description = "vpc flow logs cloudwatch group name"
+  type = string
+  default = ""
+}
+
+variable "vpc_logs_role_name" {
+    description = "VPC flow logs IAM role"
+    type = string
+    default = ""
+}
+
+variable "vpc_logs_policy_name" {
+    description = "VPC flo logs policy"
+    type = string
+    default = ""  
+}
