@@ -11,22 +11,15 @@ resource "aws_iam_policy" "iam_policy_group" {
 }
 
 resource "aws_iam_group_policy_attachment" "iam_policy_attach_group" {
-    count = var.iam_policy_json_file ? 0:1
+    count = var.iam_policy_json_file ? 1:0
     group = aws_iam_group.iam_group.name
     policy_arn = aws_iam_policy.iam_policy_group[count.index].arn
 }
 
-resource "aws_iam_policy" "iam_group_file_policy" {
-  count = var.iam_policy_json_file ? 1:0
-  name = "iam_group_policy_${count.index}"
-  description = "IAM policy for IAM User Group"
-  policy = jsondecode(var.iam_group_policy_json_file_path)
-}
-
-resource "aws_iam_group_policy_attachment" "iam_policy_file_attach_group" {
-    count = var.iam_policy_json_file ? 1:0
+resource "aws_iam_group_policy_attachment" "policy_attach_group" {
+  count = var.iam_policy_json_file ? 0:1
     group = aws_iam_group.iam_group.name
-    policy_arn = aws_iam_policy.iam_group_file_policy[count.index].arn
+    policy_arn = var.group_policy_arn
 }
 
 resource "aws_iam_policy" "MFA_policy" {

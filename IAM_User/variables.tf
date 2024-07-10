@@ -17,12 +17,6 @@ variable "iam_user_tags" {
     default = null
 }
 
-variable "iam_user_policy_name" {
-    description = "iam user policy name"
-    type = string
-    default = null
-}
-
 # IAM Group
 variable "iam_group_name" {
     description = "IAM group name"
@@ -48,4 +42,22 @@ variable "iam_group_policy_json_file_path" {
     description = "JSON file path if iam policy json file is true"
     type = string
     default = null
+}
+
+variable "group_policy_arn" {
+    description = "Policy arn for IAM group"
+    type = string
+    default = null  
+}
+
+variable "iam_group_member_name" {
+  description = "iam group member name"
+  type = string
+  default = "iam group add"
+}
+
+variable "iam_user_email" {
+    description = "User email id"
+    type = string
+    default = null  
 }
