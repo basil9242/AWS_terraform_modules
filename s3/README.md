@@ -19,6 +19,7 @@ No modules.
 
 | Name | Type |
 |------|------|
+| [aws_kms_alias.kms_alias_s3_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_alias) | resource |
 | [aws_kms_key.s3_kms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key) | resource |
 | [aws_kms_key_policy.s3_poicy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key_policy) | resource |
 | [aws_s3_bucket.s3_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
@@ -52,4 +53,4 @@ No modules.
 | Name | Description |
 |------|-------------|
 | <a name="output_s3_bucket_arn"></a> [s3\_bucket\_arn](#output\_s3\_bucket\_arn) | n/a |
-| <a name="output_s3_bucket_kms_arn"></a> [s3\_bucket\_kms\_arn](#output\_s3\_bucket\_kms\_arn) | n/a |  
+| <a name="output_s3_bucket_kms_arn"></a> [s3\_bucket\_kms\_arn](#output\_s3\_bucket\_kms\_arn) | n/a |

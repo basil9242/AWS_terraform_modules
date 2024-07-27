@@ -9,6 +9,11 @@ resource "aws_kms_key" "s3_kms" {
   }
 }
 
+resource "aws_kms_alias" "kms_alias_s3_bucket" {
+  name          = "alias/s3_kms"
+  target_key_id = aws_kms_key.s3_kms.key_id
+}
+
 resource "aws_kms_key_policy" "s3_poicy" {
   key_id = aws_kms_key.s3_kms.id
   policy = jsonencode({
