@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 module "ec2" {
-    source = "git::https://github.com/basil9242/AWS_terraform_modules.git/EC2"
+    source = "git::https://github.com/basil9242/AWS_terraform_modules.git//EC2"
     instance_ami = "ami-0ec0e125bb6c6e8ec"
     instance_type = "t2.micro"
     subnet_id = "subnet-0hgg....."
