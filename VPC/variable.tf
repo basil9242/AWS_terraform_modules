@@ -24,28 +24,36 @@ variable "enable_dns_hostnames" {
 }
 
 #subnet
-variable "cidr_block_subnet" {
-    description = "Subnet for cidr block"
-    type = list(string)
-    default = []
+variable "public_subnet" {
+    description = "cidr block, availability zone, name for public subnet"
+    type = list(object({
+      name = string
+      cidr_block = string
+      availability_zone = string
+    }))
+    default = [
+        {
+            name = ""
+            cidr_block = ""
+            availability_zone = ""
+        }
+    ]
 }
 
-variable "availability_zone" {
-    description = "availability zone for subnet"
-    type = list(string)
-    default = []  
-}
-
-variable "subnet_name" {
-    description = "Subnet names"
-    type = list(string)
-    default = []
-}
-
-variable "route_table_name" {
-    description = "Route table name"
-    type = string
-    default = ""  
+variable "private_subnet" {
+    description = "cidr block, availability zone, name for private subnet"
+    type = list(object({
+      name = string
+      cidr_block = string
+      availability_zone = string
+    }))
+    default = [
+        {
+            name = ""
+            cidr_block = ""
+            availability_zone = ""
+        }
+    ]
 }
 
 variable "vpc_cloudwatch_logs_group_name" {
@@ -58,10 +66,4 @@ variable "vpc_logs_role_name" {
     description = "VPC flow logs IAM role"
     type = string
     default = ""
-}
-
-variable "vpc_logs_policy_name" {
-    description = "VPC flo logs policy"
-    type = string
-    default = ""  
 }

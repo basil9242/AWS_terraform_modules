@@ -7,28 +7,21 @@ resource "aws_vpc" "vpc" {
     }  
 }
 
-resource "aws_subnet" "vpc_subnet" {
-    vpc_id = aws_vpc.vpc.id
-    
-    count = length(var.cidr_block_subnet)
-    cidr_block = var.cidr_block_subnet[count.index]
-    availability_zone = var.availability_zone[count.index]
-
-    tags = {
-        Name = var.subnet_name[count.index]
-    }
-}
-
 resource "aws_flow_log" "vpc_flow_log" {
     iam_role_arn = aws_iam_role.vpc_logs_role.arn
-    log_destination = aws_cloudwatch_log_group.vpc_cloudwatch_logs_group.name
+    log_destination = aws_cloudwatch_log_group.vpc_cloudwatch_logs_group.arn
     traffic_type = "ALL"
     vpc_id = aws_vpc.vpc.id  
 }
 
 resource "aws_cloudwatch_log_group" "vpc_cloudwatch_logs_group" {
     name = var.vpc_cloudwatch_logs_group_name
+    retention_in_days = 30
     kms_key_id = aws_kms_key.vpc_kms_key.id
+    depends_on = [
+      aws_kms_key.vpc_kms_key,
+      aws_kms_alias.alias
+    ]
 }
 
 data "aws_iam_policy_document" "vpc_logs_assume_role" {
@@ -66,7 +59,7 @@ data "aws_iam_policy_document" "vpc_logs_assume_policy" {
 }
 
 resource "aws_iam_role_policy" "vpc_logs_iam_policy" {
-    name = var.vpc_logs_policy_name
-    role = aws_iam_role.vpc_logs_role.arn
+    name = "vpc_policy"
+    role = aws_iam_role.vpc_logs_role.name
     policy = data.aws_iam_policy_document.vpc_logs_assume_policy.json  
 }
