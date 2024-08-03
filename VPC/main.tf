@@ -17,7 +17,7 @@ resource "aws_flow_log" "vpc_flow_log" {
 resource "aws_cloudwatch_log_group" "vpc_cloudwatch_logs_group" {
     name = var.vpc_cloudwatch_logs_group_name
     retention_in_days = 30
-    kms_key_id = aws_kms_key.vpc_kms_key.id
+    kms_key_id = aws_kms_key.vpc_kms_key.arn
     depends_on = [
       aws_kms_key.vpc_kms_key,
       aws_kms_alias.alias
@@ -52,6 +52,7 @@ data "aws_iam_policy_document" "vpc_logs_assume_policy" {
       "logs:PutLogEvents",
       "logs:DescribeLogGroups",
       "logs:DescribeLogStreams",
+      "kms:*"
     ]
 
     resources = [aws_flow_log.vpc_flow_log.arn,aws_cloudwatch_log_group.vpc_cloudwatch_logs_group.arn]

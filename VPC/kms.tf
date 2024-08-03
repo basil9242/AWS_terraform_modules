@@ -23,6 +23,15 @@ resource "aws_kms_key_policy" "vpc_kms_key_ploicy" {
         },
         Action   = "kms:*"
         Resource = "*"
+      },
+      {
+        Sid = "Allow CloudWatch Logs to use the key",
+        Effect = "Allow",
+        Principal = {
+          Service = "logs.amazonaws.com"
+        },
+        Action = "kms:*",
+        Resource = "*"
       }
     ]
   })
