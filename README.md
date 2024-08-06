@@ -24,4 +24,7 @@ Expose certain values from the module’s resources to be easily queried or inte
 A module can call other modules, allowing you to create a complex hierarchy or a layered architecture.
 
 
+
+
+
 By leveraging AWS Terraform modules, organizations can streamline their infrastructure provisioning workflow, promote best practices through reusability, and maintain infrastructure efficiency and reliability.
