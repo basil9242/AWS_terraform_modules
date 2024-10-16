@@ -24,4 +24,7 @@ resource "aws_instance" "instances" {
     metadata_options {
       http_tokens = "required"
     }
+    tags = {
+      name = var.instance_name
+    }
 }

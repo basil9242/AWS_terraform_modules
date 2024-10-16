@@ -1,3 +1,9 @@
+variable "instance_name" {
+    description = "Instance name"
+    type = string
+    default = null
+}
+
 variable "instance_ami" {
     description = "Instance ami"
     type = string

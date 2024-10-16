@@ -1,3 +1,21 @@
+## AWS CloudWatch Logs Terraform module
+
+Terraform module which creates CloudWatch Logs resources on AWS.
+
+## Usage
+
+```hcl
+provider "aws" {
+    region = "ap-south-1"
+}
+
+module "log_group" {
+    source = "git::https://github.com/basil9242/AWS_terraform_modules.git//cloudwatch_logs"
+    cloudwatch_log_group_name ="test"
+    logs_retention_in_days = 7
+}
+```
+
 # Cloudwatch Logs
 Amazon CloudWatch Logs is a monitoring service offered by AWS for collecting, monitoring, and analyzing your system, application, and custom log files. This service provides a simple way to efficiently manage logs from multiple sources and allows you to visualize, understand, and query the data contained within those logs.
 

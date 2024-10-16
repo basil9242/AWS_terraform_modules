@@ -1,3 +1,98 @@
+## AWS EC2 Terraform module
+
+Terraform module which creates EC2 resources on AWS.
+
+## Usage
+
+#### Single EC2 Instance
+
+```hcl
+provider "aws" {
+    region = "ap-south-1"
+}
+
+module "ec2" {
+    source = "git::https://github.com/basil9242/AWS_terraform_modules.git//EC2"
+    name = "test_instance"
+    instance_ami = "ami-0ec0e125bb6c6e8ec"
+    instance_type = "t2.micro"
+    subnet_id = "subnet-0hgg....."
+    associate_public_ip_address = true
+    availability_zone = "ap-south-1a"
+    root_ebs_delete_on_termination = true
+    root_ebs_encryption = true
+    root_ebs_iops = 100
+    root_ebs_volume_name = "test_ebs"
+    root_ebs_throughput = 1
+    root_ebs_volume_type = "gp3"
+    attach_role_instance = true
+    instance_profile_name = "ec2instanceprofilerole"
+    instance_role_name = "ec2_instance_role"
+    iam_policy_json_file = false
+    key_pair_name = "test_instance_key_pair"
+    policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+    security_group_name = "test_instance_sg"
+    security_group_inbound_port = ["22","80"]
+    sg_ip_protocol = "tcp"
+    vpc_id = "vpc-00...." 
+    user_data_requried_or_not = false
+    attach_ebs_requried_or_not = false
+    vpc_ipv4_cidr_block = "0.0.0.0/0"
+}
+```
+
+#### Multiple EC2 Instance
+
+```hcl
+provider "aws" {
+    region = "ap-south-1"
+}
+
+module "ec2" {
+    source = "git::https://github.com/basil9242/AWS_terraform_modules.git//EC2"
+
+    for_each = toset(["one", "two", "three"])
+    name = ${each.key}
+
+    instance_ami = "ami-0ec0e125bb6c6e8ec"
+    instance_type = "t2.micro"
+    subnet_id = "subnet-0hgg....."
+    associate_public_ip_address = true
+    availability_zone = "ap-south-1a"
+    root_ebs_delete_on_termination = true
+    root_ebs_encryption = true
+    root_ebs_iops = 100
+    root_ebs_volume_name = "test_ebs"
+    root_ebs_throughput = 1
+    root_ebs_volume_type = "gp3"
+    attach_role_instance = true
+    instance_profile_name = "ec2instanceprofilerole"
+    instance_role_name = "ec2_instance_role"
+    iam_policy_json_file = false
+    key_pair_name = "test_instance_key_pair"
+    policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+    security_group_name = "test_instance_sg"
+    security_group_inbound_port = ["22","80"]
+    sg_ip_protocol = "tcp"
+    vpc_id = "vpc-00...." 
+    user_data_requried_or_not = false
+    attach_ebs_requried_or_not = false
+    vpc_ipv4_cidr_block = "0.0.0.0/0"
+}
+```
+
+This module is designed to provision an Elastic Compute Cloud (EC2) instance in AWS. An EC2 instance provides scalable computing capacity in the AWS cloud, allowing users to run applications and services in a flexible environment. This module will create an EC2 instance based on user specifications, including instance type, security groups, and key pairs for SSH access.
+
+## Features
+
+1. Provision a new EC2 Instance.
+2. Create Security Group with ports.
+3. Create the Key pair for SSH.
+4. Create the EBS volume.
+5. User can add user data.
+6. User can attach profile role.
+
+
 ## Requirements
 
 | Name | Version |
@@ -58,6 +153,7 @@ No modules.
 | <a name="input_iam_policy_json_file"></a> [iam\_policy\_json\_file](#input\_iam\_policy\_json\_file) | IAM policy arn or json file, if json file true else false | `string` | `false` | no |
 | <a name="input_iam_policy_json_file_path"></a> [iam\_policy\_json\_file\_path](#input\_iam\_policy\_json\_file\_path) | JSON file path if iam policy json file is true | `string` | `null` | no |
 | <a name="input_instance_ami"></a> [instance\_ami](#input\_instance\_ami) | Instance ami | `string` | `null` | no |
+| <a name="input_instance_name"></a> [instance\_name](#input\_instance\_name) | Instance name | `string` | `null` | no |
 | <a name="input_instance_profile_name"></a> [instance\_profile\_name](#input\_instance\_profile\_name) | Name of the instance profile | `string` | `null` | no |
 | <a name="input_instance_role_name"></a> [instance\_role\_name](#input\_instance\_role\_name) | Instance role name | `string` | `null` | no |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | Instance type to use for the instance | `string` | `null` | no |

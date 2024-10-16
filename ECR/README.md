@@ -1,3 +1,41 @@
+## AWS ECR Terraform module
+
+Terraform module which creates ECR resources on AWS.
+
+## Usage
+```hcl
+provider "aws" {
+    region = "ap-south-1"
+}
+
+module "ecr" {
+    source = "git::https://github.com/basil9242/AWS_terraform_modules.git//ecr"
+    ecr_name = "test"
+    ecr_image_tag_mutability = "MUTABLE"
+    ecr_repository_policy_requried = true
+    ecr_policy_json_file = "./ecr_policy.json"
+}
+```
+#### ecr_policy.json
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "newstatement",
+        "Effect": "Allow",
+        "Principal": "*",
+        "Action": [
+          "ecr:BatchDeleteImage",
+          "ecr:DeleteLifecyclePolicy",
+          "ecr:GetAuthorizationToken"
+        ]
+      }
+    ]
+  }
+```
+
+
 # AWS ECR
 
 AWS Elastic Container Registry (ECR) is a fully-managed Docker container registry that allows developers to store, manage, and deploy Docker container images. It's integrated with Amazon Elastic Container Service (ECS), simplifying your development to production workflow. ECR eliminates the need to operate your own container repositories or worry about scaling the underlying infrastructure.

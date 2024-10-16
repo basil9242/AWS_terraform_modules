@@ -1,3 +1,32 @@
+## AWS S3 Bucket Terraform module
+
+Terraform module which creates S3 Bucket resources on AWS.
+
+## Usage
+
+```hcl
+provider "aws" {
+    region = "ap-south-1"
+}
+
+module "s3" {
+    source = "git::https://github.com/basil9242/AWS_terraform_modules.git//s3"
+    bucket_name = "s3-bucket-basil"
+    bucket_acl = "public-read"
+    s3_bucket_website_configuration_requried = true
+    s3_website_index_document = "index.html"
+    s3_website_error_document = "error.html"
+}
+```
+
+This module is designed to provision an Amazon Simple Storage Service (S3) bucket in AWS. An S3 bucket provides scalable object storage in the AWS cloud, allowing users to store and retrieve any amount of data with high durability and availability. This module will create an S3 bucket based on user specifications, including bucket name, versioning, ACL.
+
+## Features
+1. Provision a new S3 bucket.
+2. Set bucket policies and permissions.
+3. Enable versioning for object storage.
+4. Enable static website configuration.
+
 ## Requirements
 
 | Name | Version |
