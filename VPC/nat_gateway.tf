@@ -11,4 +11,5 @@ resource "aws_nat_gateway" "main" {
   tags = {
     Name = "main-nat-gateway"
   }
+  depends_on = [ aws_eip.nat, aws_internet_gateway_attachment.attach_igw, aws_route_table.main_route_table ]
 }
