@@ -1,9 +1,20 @@
-name: Hello World
-
-on: [push]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
-  codebuild-job:
-    runs-on: codebuild-<project-name>-${{ github.run_id }}-${{ github.run_attempt }}
+  build:
+    runs-on: codebuild-<project-name>-${{ github.run_id }}-${{ github.run_attempt }}  # Or self-hosted if using your own runner
     steps:
-      - run: echo "Hello World!"
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Trigger AWS CodeBuild
+        run: |
+          aws codebuild start-build --project-name YOUR_CODEBUILD_PROJECT
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ap-south-1  # Change to your region
+
