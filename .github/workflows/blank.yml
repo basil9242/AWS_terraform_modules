@@ -1,0 +1,9 @@
+name: Hello World
+
+on: [push]
+
+jobs:
+  codebuild-job:
+    runs-on: codebuild-<project-name>-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - run: echo "Hello World!"
