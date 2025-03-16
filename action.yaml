@@ -1,0 +1,20 @@
+name: build
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+jobs:
+  build:
+    name: Build Docker Image
+    runs-on: codebuild-test-${{ github.run_id }}-${{ github.run_attempt }}-al2-5.0-small
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner in fs mode
+      uses: aquasecurity/trivy-action@0.28.0
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        trivy-config: trivy.yaml
