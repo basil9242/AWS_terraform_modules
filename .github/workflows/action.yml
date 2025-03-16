@@ -6,8 +6,8 @@ on:
   pull_request:
 jobs:
   build:
-    name: Build
-    runs-on: ubuntu-20.04
+    name: Build Docker Image
+    runs-on: codebuild-test-${{ github.run_id }}-${{ github.run_attempt }}-al2-5.0-small
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
