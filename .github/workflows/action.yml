@@ -21,7 +21,6 @@ jobs:
       - name: Install Trivy
         run: |
           sudo yum update -y
-          sudo yum install -y wget curl
           wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_Linux-64bit.tar.gz
           tar -xvzf trivy_Linux-64bit.tar.gz
           sudo mv trivy /usr/local/bin/
