@@ -21,9 +21,7 @@ jobs:
       - name: Install Trivy
         run: |
           sudo yum update -y
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_Linux-64bit.tar.gz
-          tar -xvzf trivy_Linux-64bit.tar.gz
-          sudo mv trivy /usr/local/bin/
+          rpm -ivh https://github.com/aquasecurity/trivy/releases/download/v0.47.0/trivy_0.47.0_Linux-64bit.rpm
           sleep 10
 
       - name: Run Trivy for multiple Terraform folders
