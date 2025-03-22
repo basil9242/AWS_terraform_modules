@@ -18,13 +18,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: path
-        run: |
-         pwd
-
       - name: Install Trivy
         run: |
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+          sudo yum update -y
+          sudo yum install -y wget curl
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_Linux-64bit.tar.gz
+          tar -xvzf trivy_Linux-64bit.tar.gz
+          sudo mv trivy /usr/local/bin/
+          sleep 10
 
       - name: Run Trivy for multiple Terraform folders
         run: |
