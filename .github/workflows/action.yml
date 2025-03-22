@@ -1,0 +1,33 @@
+    
+name: Trivy Terraform Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  trivy_scan:
+    name: Run Trivy on Terraform Folders
+    runs-on: codebuild-Terraform-trivy-scan-github-action-${{ github.run_id }}-${{ github.run_attempt }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+
+      - name: Run Trivy for multiple Terraform folders
+        run: |
+          FOLDERS=("EC2" "ECR" "VPC" "IAM_User" "cloudwatch_logs" "s3")
+          
+          for folder in "${FOLDERS[@]}"; do
+            echo "Scanning $folder"
+            trivy config --exit-code 1 --severity HIGH,CRITICAL "$folder"
+          done
+     
