@@ -18,13 +18,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: path
+        run: |
+         pwd
+
       - name: Install Trivy
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
 
       - name: Run Trivy for multiple Terraform folders
         run: |
-          pwd
           FOLDERS=("EC2" "ECR" "VPC" "IAM_User" "cloudwatch_logs" "s3")
           
           for folder in "${FOLDERS[@]}"; do
