@@ -18,7 +18,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Trivy
+      - name: Install Tflint
         run: |
           sudo yum update -y
           curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
