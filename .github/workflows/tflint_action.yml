@@ -24,7 +24,7 @@ jobs:
           curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
           sleep 10
 
-      - name: Run Trivy for multiple Terraform folders
+      - name: Run Tflint for multiple Terraform folders
         run: |
-          tflint --recursive --filter main.tf
+          tflint --call-module-type=all
      
