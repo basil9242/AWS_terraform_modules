@@ -1,5 +1,5 @@
     
-name: Trivy Terraform Scan
+name: Tflint Terraform Scan
 
 on:
   push:
