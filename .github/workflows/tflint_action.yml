@@ -1,0 +1,30 @@
+    
+name: Trivy Terraform Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  trivy_scan:
+    name: Run Trivy on Terraform Folders
+    runs-on: codebuild-Terraform-trivy-scan-github-action-${{ github.run_id }}-${{ github.run_attempt }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Trivy
+        run: |
+          sudo yum update -y
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+          sleep 10
+
+      - name: Run Trivy for multiple Terraform folders
+        run: |
+          tflint --recursive --filter main.tf
+     
