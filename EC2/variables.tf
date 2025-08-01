@@ -1,19 +1,28 @@
 variable "instance_name" {
-    description = "Instance name"
-    type = string
-    default = null
+  description = "Instance name"
+  type        = string
+  validation {
+    condition     = var.instance_name != null && length(var.instance_name) > 0
+    error_message = "Instance name must be provided and cannot be empty."
+  }
 }
 
 variable "instance_ami" {
-    description = "Instance ami"
-    type = string
-    default = null  
+  description = "Instance AMI ID"
+  type        = string
+  validation {
+    condition     = var.instance_ami != null && can(regex("^ami-[0-9a-f]{8,17}$", var.instance_ami))
+    error_message = "Instance AMI must be a valid AMI ID (ami-xxxxxxxx)."
+  }
 }
 
 variable "instance_type" {
-    description = "Instance type to use for the instance"
-    type = string
-    default = null
+  description = "Instance type to use for the instance"
+  type        = string
+  validation {
+    condition     = var.instance_type != null && length(var.instance_type) > 0
+    error_message = "Instance type must be provided and cannot be empty."
+  }
 }
 
 variable "subnet_id" {
@@ -47,9 +56,9 @@ variable "root_ebs_encryption" {
 }
 
 variable "root_ebs_iops" {
-    description = "Amount of provisioned IOPS. Only valid for volume_type of io1, io2 or gp3"
-    type = string
-    default = null  
+  description = "Amount of provisioned IOPS. Only valid for volume_type of io1, io2 or gp3"
+  type        = number
+  default     = null
 }
 
 variable "root_ebs_volume_name" {
@@ -59,21 +68,19 @@ variable "root_ebs_volume_name" {
 }
 
 variable "root_ebs_throughput" {
-    description = "Throughput to provision for a volume in mebibytes per second (MiB/s). This is only valid for volume_type of gp3."
-    type = string
-    default = null 
+  description = "Throughput to provision for a volume in mebibytes per second (MiB/s). This is only valid for volume_type of gp3."
+  type        = number
+  default     = null
 }
 
 variable "root_volume_size" {
-    description = "Size of the volume in gibibytes (GiB)."
-    type = string
-    default = null 
-}
-
-variable "root_ebs_volume_type" {
-    description = "Type of volume. Valid values include standard, gp2, gp3, io1, io2, sc1, or st1."
-    type = string
-    default = null 
+  description = "Size of the volume in gibibytes (GiB)."
+  type        = number
+  default     = 20
+  validation {
+    condition     = var.root_volume_size >= 8 && var.root_volume_size <= 16384
+    error_message = "Root volume size must be between 8 and 16384 GiB."
+  }
 }
 
 variable "ebs_device_name" {
@@ -82,10 +89,10 @@ variable "ebs_device_name" {
     default = null
 }
 
-variable "attach_ebs_requried_or_not" {
-    description = "Attach EBS volume to EC2 instance other than root EBS volume requried"
-    type = bool
-    default = false
+variable "attach_ebs_required" {
+  description = "Whether to attach additional EBS volume to EC2 instance (other than root EBS volume)"
+  type        = bool
+  default     = false
 }
 
 variable "ebs_encryption" {
@@ -119,9 +126,9 @@ variable "ebs_volume_type" {
 }
 
 variable "attach_role_instance" {
-    description = "Attach iam role to instance, if requried true else false"
-    type = string
-    default = false  
+  description = "Whether to attach IAM role to instance"
+  type        = bool
+  default     = false
 }
 
 variable "instance_profile_name" {
@@ -196,10 +203,10 @@ variable "vpc_ipv4_cidr_block" {
     default = null  
 }
 
-variable "user_data_requried_or_not" {
-    description = "user data requried or not"
-    type = bool
-    default = false  
+variable "user_data_required" {
+  description = "Whether user data is required"
+  type        = bool
+  default     = false
 }
 
 variable "ebs_availability_zone" {
@@ -212,4 +219,33 @@ variable "ebs_final_snapshot" {
     description = "If true, snapshot will be created before volume deletion. Any tags on the volume will be migrated to the snapshot. By default set to false"
     type = bool
     default = false  
+}
+# Monitoring and Environment
+variable "enable_detailed_monitoring" {
+  description = "Whether to enable detailed monitoring for the instance"
+  type        = bool
+  default     = false
+}
+
+variable "environment" {
+  description = "Environment name (e.g., dev, staging, prod)"
+  type        = string
+  default     = "dev"
+}
+
+variable "tags" {
+  description = "A map of tags to assign to the resources"
+  type        = map(string)
+  default     = {}
+}
+
+# Volume type validation
+variable "root_ebs_volume_type" {
+  description = "Type of volume. Valid values include standard, gp2, gp3, io1, io2, sc1, or st1."
+  type        = string
+  default     = "gp3"
+  validation {
+    condition     = contains(["standard", "gp2", "gp3", "io1", "io2", "sc1", "st1"], var.root_ebs_volume_type)
+    error_message = "Root EBS volume type must be one of: standard, gp2, gp3, io1, io2, sc1, st1."
+  }
 }

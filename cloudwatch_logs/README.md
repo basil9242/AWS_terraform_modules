@@ -1,88 +1,230 @@
-## AWS CloudWatch Logs Terraform module
+# AWS CloudWatch Logs Terraform Module
 
-Terraform module which creates CloudWatch Logs resources on AWS.
+A comprehensive Terraform module for creating and managing AWS CloudWatch Logs resources with advanced features including KMS encryption, log streams, metric filters, and cross-account log destinations.
+
+## Features
+
+- ✅ **CloudWatch Log Groups** with configurable retention and encryption
+- ✅ **KMS Encryption** with automatic key rotation and least-privilege policies
+- ✅ **Log Streams** for organized log data
+- ✅ **Metric Filters** for monitoring and alerting
+- ✅ **Log Subscription Filters** for real-time log processing
+- ✅ **Cross-Account Log Destinations** for centralized logging
+- ✅ **Comprehensive Tagging** support
+- ✅ **Variable Validation** for input safety
 
 ## Usage
 
-```hcl
-provider "aws" {
-    region = "ap-south-1"
-}
+### Basic Usage
 
-module "log_group" {
-    source = "git::https://github.com/basil9242/AWS_terraform_modules.git//cloudwatch_logs"
-    cloudwatch_log_group_name ="test"
-    logs_retention_in_days = 7
+```hcl
+module "cloudwatch_logs" {
+  source = "git::https://github.com/basil9242/AWS_terraform_modules.git//cloudwatch_logs"
+  
+  cloudwatch_log_group_name = "my-application-logs"
+  logs_retention_in_days    = 30
+  
+  tags = {
+    Environment = "production"
+    Application = "my-app"
+  }
 }
 ```
 
-# Cloudwatch Logs
-Amazon CloudWatch Logs is a monitoring service offered by AWS for collecting, monitoring, and analyzing your system, application, and custom log files. This service provides a simple way to efficiently manage logs from multiple sources and allows you to visualize, understand, and query the data contained within those logs.
+### Advanced Usage with All Features
 
-## Key Features
-
-### 1. Log Collection & Storage:
-You can easily send logs to CloudWatch from Amazon EC2 instances, AWS CloudTrail, or other sources.
-### 2. Real-Time Monitoring: 
-Stream logs in real-time and monitor them through specific metrics.
-### 3. Scalable Architecture: 
-It automatically scales with your log volume and velocity without any operational overhead.
-### 4. Search & Filtering: 
-Advanced search features help you filter log data based on criteria that you define.
-### 5. Alerts: 
-Set up alarms to notify you of specific events or patterns in logs.
-### 6. Integration with Other Services: 
-Works seamlessly with services like AWS Lambda, S3, Elasticsearch, etc.
-
-## How to Use CloudWatch Logs
-
-### 1.Set Up Log Collection: 
-Configure your AWS services and applications to send logs to CloudWatch.
-### 2. View & Search Logs: 
-Access your logs in the CloudWatch console to view and search through them.
-### 3. Monitor & Alarm: 
-Create customized metrics and set up alarms to be notified of particular log events.
-### 4. Archive & Retention Policies: 
-Define retention policies to store logs for the desired duration and archive older logs to Amazon S3 for long-term storage.
+```hcl
+module "cloudwatch_logs" {
+  source = "git::https://github.com/basil9242/AWS_terraform_modules.git//cloudwatch_logs"
+  
+  # Basic Configuration
+  cloudwatch_log_group_name = "my-application-logs"
+  logs_retention_in_days    = 90
+  log_group_class          = "STANDARD"
+  
+  # KMS Configuration
+  enable_kms_key_rotation  = true
+  kms_key_deletion_window  = 30
+  
+  # Log Streams
+  create_log_streams = true
+  log_streams = [
+    "application-stream",
+    "error-stream",
+    "access-stream"
+  ]
+  
+  # Metric Filters
+  create_metric_filters = true
+  metric_filters = [
+    {
+      name             = "error-count"
+      pattern          = "[timestamp, request_id, level=\"ERROR\", ...]"
+      metric_name      = "ApplicationErrors"
+      metric_namespace = "MyApp/Logs"
+      metric_value     = "1"
+      default_value    = 0
+    }
+  ]
+  
+  # Subscription Filter
+  cloudwatch_log_subscription_filter_required = true
+  cloudwatch_log_filter                       = "[timestamp, request_id, level, message]"
+  destination_arn_push_logs                   = "arn:aws:lambda:us-east-1:123456789012:function:log-processor"
+  
+  # Cross-Account Log Destination
+  create_log_destination      = true
+  log_destination_name        = "central-logging-destination"
+  log_destination_role_arn    = "arn:aws:iam::123456789012:role/LogDestinationRole"
+  log_destination_target_arn  = "arn:aws:kinesis:us-east-1:123456789012:stream/central-logs"
+  
+  # Tagging
+  environment  = "production"
+  project_name = "my-project"
+  tags = {
+    Owner       = "platform-team"
+    CostCenter  = "engineering"
+    Compliance  = "required"
+  }
+}
+```
 
 ## Requirements
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >=1.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
+| terraform | >= 1.0 |
+| aws | ~> 5.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.60.0 |
+| aws | ~> 5.0 |
 
-## Modules
+## Resources Created
 
-No modules.
-
-## Resources
-
-| Name | Type |
-|------|------|
-| [aws_cloudwatch_log_group.cloudwatch_logs_group](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
-| [aws_kms_alias.alias](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_alias) | resource |
-| [aws_kms_key.cloudwatch_kms_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key) | resource |
-| [aws_kms_key_policy.cloudwatch_kms_key_ploicy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key_policy) | resource |
-| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
+| Resource | Description |
+|----------|-------------|
+| `aws_cloudwatch_log_group` | Main log group with encryption and retention |
+| `aws_kms_key` | KMS key for log encryption |
+| `aws_kms_key_policy` | Least-privilege KMS key policy |
+| `aws_kms_alias` | Human-readable alias for the KMS key |
+| `aws_cloudwatch_log_stream` | Individual log streams (optional) |
+| `aws_cloudwatch_log_metric_filter` | Metric filters for monitoring (optional) |
+| `aws_cloudwatch_log_subscription_filter` | Real-time log processing (optional) |
+| `aws_cloudwatch_log_destination` | Cross-account log destination (optional) |
+| `aws_iam_role` | IAM role for subscription filter (when needed) |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_cloudwatch_log_group_name"></a> [cloudwatch\_log\_group\_name](#input\_cloudwatch\_log\_group\_name) | cloudwatch log goup nme | `string` | `null` | no |
-| <a name="input_log_group_class"></a> [log\_group\_class](#input\_log\_group\_class) | Specified the log class of the log group. Possible values are: STANDARD or INFREQUENT\_ACCESS. | `string` | `"STANDARD"` | no |
-| <a name="input_log_group_skip_destroy"></a> [log\_group\_skip\_destroy](#input\_log\_group\_skip\_destroy) | Set to true if you do not wish the log group (and any logs it may contain) to be deleted at destroy time, and instead just remove the log group from the Terraform state. | `bool` | `false` | no |
-| <a name="input_logs_retention_in_days"></a> [logs\_retention\_in\_days](#input\_logs\_retention\_in\_days) | Specifies the number of days you want to retain log events in the specified log group. | `number` | `7` | no |
+| `cloudwatch_log_group_name` | CloudWatch log group name | `string` | n/a | yes |
+| `logs_retention_in_days` | Log retention period in days | `number` | `7` | no |
+| `log_group_class` | Log class (STANDARD or INFREQUENT_ACCESS) | `string` | `"STANDARD"` | no |
+| `log_group_skip_destroy` | Skip log group deletion on destroy | `bool` | `false` | no |
+| `enable_kms_key_rotation` | Enable automatic KMS key rotation | `bool` | `true` | no |
+| `kms_key_deletion_window` | KMS key deletion window (7-30 days) | `number` | `20` | no |
+| `create_log_streams` | Create log streams | `bool` | `false` | no |
+| `log_streams` | List of log stream names | `list(string)` | `[]` | no |
+| `create_metric_filters` | Create metric filters | `bool` | `false` | no |
+| `metric_filters` | List of metric filter configurations | `list(object)` | `[]` | no |
+| `cloudwatch_log_subscription_filter_required` | Enable subscription filter | `bool` | `false` | no |
+| `cloudwatch_log_filter` | Log filter pattern | `string` | `null` | no |
+| `destination_arn_push_logs` | Destination ARN for log events | `string` | `null` | no |
+| `create_log_destination` | Create cross-account log destination | `bool` | `false` | no |
+| `tags` | Resource tags | `map(string)` | `{}` | no |
+| `environment` | Environment name | `string` | `"dev"` | no |
+| `project_name` | Project name | `string` | `"default"` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_cloudwatch_logs_arn"></a> [cloudwatch\_logs\_arn](#output\_cloudwatch\_logs\_arn) | cloudwatch log group arn |
+| `cloudwatch_logs_arn` | CloudWatch log group ARN |
+| `cloudwatch_logs_name` | CloudWatch log group name |
+| `kms_key_id` | KMS key ID |
+| `kms_key_arn` | KMS key ARN |
+| `kms_alias_name` | KMS key alias name |
+| `log_streams` | Created log stream names |
+| `metric_filters` | Created metric filter names |
+| `log_destination_arn` | Log destination ARN (if created) |
+
+## Examples
+
+### Error Monitoring Setup
+
+```hcl
+module "error_monitoring_logs" {
+  source = "git::https://github.com/basil9242/AWS_terraform_modules.git//cloudwatch_logs"
+  
+  cloudwatch_log_group_name = "application-errors"
+  logs_retention_in_days    = 365
+  
+  create_metric_filters = true
+  metric_filters = [
+    {
+      name             = "critical-errors"
+      pattern          = "[timestamp, request_id, level=\"CRITICAL\", ...]"
+      metric_name      = "CriticalErrors"
+      metric_namespace = "Application/Errors"
+    },
+    {
+      name             = "error-rate"
+      pattern          = "[timestamp, request_id, level=\"ERROR\", ...]"
+      metric_name      = "ErrorRate"
+      metric_namespace = "Application/Metrics"
+    }
+  ]
+  
+  tags = {
+    Purpose = "error-monitoring"
+    Team    = "sre"
+  }
+}
+```
+
+### Centralized Logging
+
+```hcl
+module "centralized_logs" {
+  source = "git::https://github.com/basil9242/AWS_terraform_modules.git//cloudwatch_logs"
+  
+  cloudwatch_log_group_name = "central-application-logs"
+  
+  create_log_destination     = true
+  log_destination_name       = "central-log-destination"
+  log_destination_role_arn   = aws_iam_role.log_destination_role.arn
+  log_destination_target_arn = aws_kinesis_stream.central_logs.arn
+  
+  tags = {
+    LoggingStrategy = "centralized"
+    DataRetention   = "long-term"
+  }
+}
+```
+
+## Best Practices
+
+1. **Use appropriate retention periods** - Balance cost and compliance requirements
+2. **Enable KMS encryption** - Protect sensitive log data
+3. **Implement metric filters** - Monitor application health and errors
+4. **Use consistent tagging** - Enable proper cost allocation and resource management
+5. **Set up subscription filters** - Enable real-time log processing and alerting
+6. **Consider log classes** - Use INFREQUENT_ACCESS for cost optimization on rarely accessed logs
+
+## Security Considerations
+
+- KMS keys use least-privilege policies
+- Log groups are encrypted by default
+- Cross-account access is properly controlled
+- IAM roles follow principle of least privilege
+
+## Cost Optimization
+
+- Use appropriate retention periods
+- Consider INFREQUENT_ACCESS log class for archival logs
+- Implement lifecycle policies for long-term storage
+- Monitor CloudWatch Logs costs with proper tagging
+

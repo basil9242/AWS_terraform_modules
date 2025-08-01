@@ -1,12 +1,11 @@
-#trivy:ignore:AVD-AWS-0089
 resource "aws_s3_bucket" "s3_bucket" {
   bucket        = var.bucket_name
   force_destroy = var.bucket_object_destroy
-  tags = {
-    Name = var.bucket_name
-  }
-  acl = var.bucket_acl
-
+  
+  tags = merge(var.tags, {
+    Name        = var.bucket_name
+    Environment = var.environment
+  })
 }
 
 resource "aws_s3_bucket_public_access_block" "s3_bucket_public_access_block" {

@@ -1,110 +1,663 @@
-## AWS ECR Terraform module
+# AWS ECR Terraform Module
 
-Terraform module which creates ECR resources on AWS.
+A comprehensive Terraform module for creating and managing AWS Elastic Container Registry (ECR) repositories with advanced security features, lifecycle policies, and KMS encryption.
+
+## Features
+
+- ✅ **ECR Repositories** with configurable image tag mutability
+- ✅ **KMS Encryption** for images at rest
+- ✅ **Repository Policies** with JSON file support
+- ✅ **Lifecycle Policies** for image management
+- ✅ **Image Scanning** for vulnerability detection
+- ✅ **Cross-Account Access** support
+- ✅ **Comprehensive Tagging** support
+- ✅ **Variable Validation** for input safety
 
 ## Usage
-```hcl
-provider "aws" {
-    region = "ap-south-1"
-}
 
-module "ecr" {
-    source = "git::https://github.com/basil9242/AWS_terraform_modules.git//ecr"
-    ecr_name = "test"
-    ecr_image_tag_mutability = "MUTABLE"
-    ecr_repository_policy_requried = true
-    ecr_policy_json_file = "./ecr_policy.json"
+### Basic ECR Repository
+
+```hcl
+module "ecr_repository" {
+  source = "git::https://github.com/basil9242/AWS_terraform_modules.git//ECR"
+  
+  ecr_name = "my-application"
+  
+  tags = {
+    Environment = "production"
+    Application = "my-app"
+  }
 }
 ```
-#### ecr_policy.json
-```json
-{
-    "Version": "2012-10-17",
-    "Statement": [
+
+### Advanced ECR Repository with All Features
+
+```hcl
+module "ecr_repository" {
+  source = "git::https://github.com/basil9242/AWS_terraform_modules.git//ECR"
+  
+  # Repository Configuration
+  ecr_name                 = "my-advanced-app"
+  ecr_image_tag_mutability = "IMMUTABLE"
+  
+  # Security Configuration
+  enable_image_scanning = true
+  scan_on_push         = true
+  
+  # Lifecycle Policy
+  enable_lifecycle_policy = true
+  lifecycle_policy = jsonencode({
+    rules = [
       {
-        "Sid": "newstatement",
-        "Effect": "Allow",
-        "Principal": "*",
-        "Action": [
-          "ecr:BatchDeleteImage",
-          "ecr:DeleteLifecyclePolicy",
-          "ecr:GetAuthorizationToken"
-        ]
+        rulePriority = 1
+        description  = "Keep last 10 production images"
+        selection = {
+          tagStatus     = "tagged"
+          tagPrefixList = ["prod"]
+          countType     = "imageCountMoreThan"
+          countNumber   = 10
+        }
+        action = {
+          type = "expire"
+        }
+      },
+      {
+        rulePriority = 2
+        description  = "Keep last 5 development images"
+        selection = {
+          tagStatus     = "tagged"
+          tagPrefixList = ["dev"]
+          countType     = "imageCountMoreThan"
+          countNumber   = 5
+        }
+        action = {
+          type = "expire"
+        }
+      },
+      {
+        rulePriority = 3
+        description  = "Delete untagged images older than 1 day"
+        selection = {
+          tagStatus   = "untagged"
+          countType   = "sinceImagePushed"
+          countUnit   = "days"
+          countNumber = 1
+        }
+        action = {
+          type = "expire"
+        }
       }
     ]
+  })
+  
+  # Repository Policy
+  ecr_repository_policy_required = true
+  ecr_policy_json_file_path     = "./policies/ecr-policy.json"
+  
+  # KMS Configuration
+  enable_kms_encryption   = true
+  kms_key_deletion_window = 30
+  enable_kms_key_rotation = true
+  
+  # Tagging
+  environment = "production"
+  tags = {
+    Owner       = "platform-team"
+    CostCenter  = "engineering"
+    Compliance  = "required"
+    Application = "my-advanced-app"
   }
+}
 ```
 
+### Multiple ECR Repositories
 
-# AWS ECR
+```hcl
+locals {
+  repositories = {
+    frontend = {
+      name        = "my-app-frontend"
+      mutability  = "MUTABLE"
+      environment = "development"
+    }
+    backend = {
+      name        = "my-app-backend"
+      mutability  = "IMMUTABLE"
+      environment = "production"
+    }
+    worker = {
+      name        = "my-app-worker"
+      mutability  = "IMMUTABLE"
+      environment = "production"
+    }
+  }
+}
 
-AWS Elastic Container Registry (ECR) is a fully-managed Docker container registry that allows developers to store, manage, and deploy Docker container images. It's integrated with Amazon Elastic Container Service (ECS), simplifying your development to production workflow. ECR eliminates the need to operate your own container repositories or worry about scaling the underlying infrastructure.
-
-ECR hosts your images in a highly available and scalable architecture, allowing you to reliably deploy containers for your applications. The service supports private Docker repositories with resource-based permissions using AWS Identity and Access Management (IAM) to specify who can access and modify your repositories.
-
-## Key Features of AWS ECR:
-
-### 1. Secure: 
-ECR transfers your container images over HTTPS and automatically encrypts your images at rest.
-### 2. Scalable: 
-You can seamlessly host as many images as you need with the high availability of AWS infrastructure.
-### 3. Integrated: 
-Works well with AWS services like ECS and AWS Lambda for simplified application development and deployment.
-### 4. Reliable:
-Backed by Amazon’s massive infrastructure, ensuring high availability and reliability.
-### 5. Access Control: 
-Fine-grained access control policies allow you to manage permissions at the repository level.
-
-## ECR Policies:
-
-ECR uses policies to manage permissions. These policies are JSON statements that define what actions are allowed or denied on your repositories. There are two types of policies:
-
-### 1. Repository Policies: 
-These are resource-based policies that allow you to control who has access to your ECR repositories and what actions they can perform. They are similar to S3 bucket policies and can be used to grant cross-account access.
-### 2. IAM Policies: 
-These are attached to IAM users, groups, or roles within your AWS account. They specify what actions those entities can perform on all resources in your account, including ECR repositories. IAM policies can be used to enforce user-level permissions.
-
-By combining these policies, you can create a secure environment for managing your Docker containers while leveraging the robustness and scalability of AWS infrastructure.
+module "ecr_repositories" {
+  source = "git::https://github.com/basil9242/AWS_terraform_modules.git//ECR"
+  
+  for_each = local.repositories
+  
+  ecr_name                 = each.value.name
+  ecr_image_tag_mutability = each.value.mutability
+  
+  # Enable scanning for production repositories
+  enable_image_scanning = each.value.environment == "production"
+  scan_on_push         = each.value.environment == "production"
+  
+  # Lifecycle policy for all repositories
+  enable_lifecycle_policy = true
+  lifecycle_policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 10 images"
+        selection = {
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 10
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+  
+  environment = each.value.environment
+  tags = {
+    Component = each.key
+    Service   = "my-app"
+  }
+}
+```
 
 ## Requirements
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >=1.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
+| terraform | >= 1.0 |
+| aws | ~> 5.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.61.0 |
+| aws | ~> 5.0 |
 
-## Modules
+## Resources Created
 
-No modules.
-
-## Resources
-
-| Name | Type |
-|------|------|
-| [aws_ecr_repository.ecr_repository](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_repository) | resource |
-| [aws_ecr_repository_policy.ecr_repository_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_repository_policy) | resource |
-| [aws_kms_alias.alias](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_alias) | resource |
-| [aws_kms_key.ecr_kms_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key) | resource |
-| [aws_kms_key_policy.ecr_kms_key_ploicy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key_policy) | resource |
-| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
+| Resource | Description |
+|----------|-------------|
+| `aws_ecr_repository` | ECR repository for container images |
+| `aws_ecr_repository_policy` | Repository access policy (optional) |
+| `aws_ecr_lifecycle_policy` | Lifecycle policy for image management (optional) |
+| `aws_kms_key` | KMS key for image encryption |
+| `aws_kms_key_policy` | KMS key policy |
+| `aws_kms_alias` | KMS key alias |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_ecr_image_tag_mutability"></a> [ecr\_image\_tag\_mutability](#input\_ecr\_image\_tag\_mutability) | The tag mutability setting for the repository. Must be one of: MUTABLE or IMMUTABLE. | `string` | `"IMMUTABLE"` | no |
-| <a name="input_ecr_name"></a> [ecr\_name](#input\_ecr\_name) | Name of the repository | `string` | `null` | no |
-| <a name="input_ecr_policy_json_file"></a> [ecr\_policy\_json\_file](#input\_ecr\_policy\_json\_file) | ECR policy json file path | `string` | `null` | no |
-| <a name="input_ecr_repository_policy_requried"></a> [ecr\_repository\_policy\_requried](#input\_ecr\_repository\_policy\_requried) | ECR repository policy is requried not not | `bool` | `false` | no |
+| `ecr_name` | Name of the ECR repository | `string` | n/a | yes |
+| `ecr_image_tag_mutability` | Image tag mutability (MUTABLE or IMMUTABLE) | `string` | `"IMMUTABLE"` | no |
+| `enable_image_scanning` | Enable image vulnerability scanning | `bool` | `true` | no |
+| `scan_on_push` | Scan images on push | `bool` | `true` | no |
+| `enable_lifecycle_policy` | Enable lifecycle policy | `bool` | `false` | no |
+| `lifecycle_policy` | Lifecycle policy JSON | `string` | `null` | no |
+| `ecr_repository_policy_required` | Enable repository policy | `bool` | `false` | no |
+| `ecr_policy_json_file_path` | Path to repository policy JSON file | `string` | `null` | no |
+| `enable_kms_encryption` | Enable KMS encryption | `bool` | `true` | no |
+| `kms_key_deletion_window` | KMS key deletion window (7-30 days) | `number` | `20` | no |
+| `enable_kms_key_rotation` | Enable automatic KMS key rotation | `bool` | `true` | no |
+| `tags` | Resource tags | `map(string)` | `{}` | no |
+| `environment` | Environment name | `string` | `"dev"` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_ecr_arn"></a> [ecr\_arn](#output\_ecr\_arn) | ECR arn |
+| `ecr_repository_arn` | ECR repository ARN |
+| `ecr_repository_url` | ECR repository URL |
+| `ecr_repository_name` | ECR repository name |
+| `ecr_registry_id` | ECR registry ID |
+| `kms_key_id` | KMS key ID |
+| `kms_key_arn` | KMS key ARN |
+| `kms_alias_name` | KMS key alias name |
+
+## Examples
+
+### Microservices ECR Setup
+
+```hcl
+locals {
+  microservices = [
+    "user-service",
+    "order-service", 
+    "payment-service",
+    "notification-service",
+    "api-gateway"
+  ]
+}
+
+module "microservices_ecr" {
+  source = "git::https://github.com/basil9242/AWS_terraform_modules.git//ECR"
+  
+  for_each = toset(local.microservices)
+  
+  ecr_name                 = "mycompany-${each.value}"
+  ecr_image_tag_mutability = "IMMUTABLE"
+  
+  # Enable security scanning
+  enable_image_scanning = true
+  scan_on_push         = true
+  
+  # Lifecycle policy to manage image retention
+  enable_lifecycle_policy = true
+  lifecycle_policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 20 production images"
+        selection = {
+          tagStatus     = "tagged"
+          tagPrefixList = ["v", "release"]
+          countType     = "imageCountMoreThan"
+          countNumber   = 20
+        }
+        action = {
+          type = "expire"
+        }
+      },
+      {
+        rulePriority = 2
+        description  = "Keep last 5 development images"
+        selection = {
+          tagStatus     = "tagged"
+          tagPrefixList = ["dev", "feature"]
+          countType     = "imageCountMoreThan"
+          countNumber   = 5
+        }
+        action = {
+          type = "expire"
+        }
+      },
+      {
+        rulePriority = 3
+        description  = "Delete untagged images after 1 day"
+        selection = {
+          tagStatus   = "untagged"
+          countType   = "sinceImagePushed"
+          countUnit   = "days"
+          countNumber = 1
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+  
+  tags = {
+    Service     = each.value
+    Environment = "production"
+    Team        = "platform"
+  }
+}
+```
+
+### Cross-Account ECR Repository
+
+```hcl
+# ECR repository policy for cross-account access
+data "aws_iam_policy_document" "ecr_cross_account_policy" {
+  statement {
+    sid    = "CrossAccountAccess"
+    effect = "Allow"
+    
+    principals {
+      type        = "AWS"
+      identifiers = [
+        "arn:aws:iam::123456789012:root",  # Development account
+        "arn:aws:iam::123456789013:root"   # Staging account
+      ]
+    }
+    
+    actions = [
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:BatchGetImage",
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:GetRepositoryPolicy",
+      "ecr:DescribeRepositories",
+      "ecr:ListImages",
+      "ecr:DescribeImages",
+      "ecr:BatchDeleteImage",
+      "ecr:GetLifecyclePolicy",
+      "ecr:GetLifecyclePolicyPreview",
+      "ecr:ListTagsForResource",
+      "ecr:DescribeImageScanFindings"
+    ]
+  }
+  
+  statement {
+    sid    = "LambdaAccess"
+    effect = "Allow"
+    
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+    
+    actions = [
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:BatchGetImage"
+    ]
+  }
+}
+
+module "shared_ecr" {
+  source = "git::https://github.com/basil9242/AWS_terraform_modules.git//ECR"
+  
+  ecr_name                 = "shared-base-images"
+  ecr_image_tag_mutability = "IMMUTABLE"
+  
+  # Cross-account policy
+  ecr_repository_policy_required = true
+  ecr_repository_policy         = data.aws_iam_policy_document.ecr_cross_account_policy.json
+  
+  # Long retention for base images
+  enable_lifecycle_policy = true
+  lifecycle_policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 50 tagged images"
+        selection = {
+          tagStatus   = "tagged"
+          countType   = "imageCountMoreThan"
+          countNumber = 50
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+  
+  tags = {
+    Purpose = "shared-base-images"
+    Access  = "cross-account"
+  }
+}
+```
+
+### CI/CD Pipeline ECR
+
+```hcl
+module "cicd_ecr" {
+  source = "git::https://github.com/basil9242/AWS_terraform_modules.git//ECR"
+  
+  ecr_name                 = "myapp-cicd"
+  ecr_image_tag_mutability = "MUTABLE"  # Allow overwriting for CI/CD
+  
+  # Enable scanning for security
+  enable_image_scanning = true
+  scan_on_push         = true
+  
+  # Aggressive cleanup for CI/CD images
+  enable_lifecycle_policy = true
+  lifecycle_policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep only latest 3 images per branch"
+        selection = {
+          tagStatus   = "tagged"
+          countType   = "imageCountMoreThan"
+          countNumber = 3
+        }
+        action = {
+          type = "expire"
+        }
+      },
+      {
+        rulePriority = 2
+        description  = "Delete untagged images immediately"
+        selection = {
+          tagStatus   = "untagged"
+          countType   = "sinceImagePushed"
+          countUnit   = "hours"
+          countNumber = 1
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+  
+  tags = {
+    Purpose = "ci-cd"
+    Team    = "devops"
+  }
+}
+```
+
+## Repository Policy Examples
+
+### Basic Cross-Account Access Policy
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CrossAccountAccess",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": [
+          "arn:aws:iam::123456789012:root",
+          "arn:aws:iam::123456789013:root"
+        ]
+      },
+      "Action": [
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage",
+        "ecr:BatchCheckLayerAvailability"
+      ]
+    }
+  ]
+}
+```
+
+### Service-Specific Access Policy
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ECSTaskAccess",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ecs-tasks.amazonaws.com"
+      },
+      "Action": [
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage"
+      ]
+    },
+    {
+      "Sid": "LambdaAccess",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Action": [
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage"
+      ]
+    }
+  ]
+}
+```
+
+## Lifecycle Policy Examples
+
+### Production Image Retention
+
+```json
+{
+  "rules": [
+    {
+      "rulePriority": 1,
+      "description": "Keep last 30 production images",
+      "selection": {
+        "tagStatus": "tagged",
+        "tagPrefixList": ["prod", "v"],
+        "countType": "imageCountMoreThan",
+        "countNumber": 30
+      },
+      "action": {
+        "type": "expire"
+      }
+    },
+    {
+      "rulePriority": 2,
+      "description": "Keep last 10 development images",
+      "selection": {
+        "tagStatus": "tagged",
+        "tagPrefixList": ["dev", "feature"],
+        "countType": "imageCountMoreThan",
+        "countNumber": 10
+      },
+      "action": {
+        "type": "expire"
+      }
+    },
+    {
+      "rulePriority": 3,
+      "description": "Delete untagged images older than 1 day",
+      "selection": {
+        "tagStatus": "untagged",
+        "countType": "sinceImagePushed",
+        "countUnit": "days",
+        "countNumber": 1
+      },
+      "action": {
+        "type": "expire"
+      }
+    }
+  ]
+}
+```
+
+## Best Practices
+
+1. **Use IMMUTABLE tags** - For production repositories to prevent accidental overwrites
+2. **Enable image scanning** - Detect vulnerabilities in container images
+3. **Implement lifecycle policies** - Manage storage costs and cleanup old images
+4. **Use least privilege policies** - Grant minimal required permissions
+5. **Enable KMS encryption** - Protect images at rest
+6. **Consistent tagging** - Use semantic versioning and environment tags
+7. **Monitor repository metrics** - Track image pushes, pulls, and storage usage
+8. **Regular security reviews** - Audit repository policies and access patterns
+
+## Security Considerations
+
+- Images are encrypted at rest with KMS by default
+- Repository policies should follow least privilege principle
+- Image scanning helps identify vulnerabilities
+- Cross-account access should be carefully controlled
+- Use IAM roles instead of access keys for authentication
+- Regular rotation of KMS keys is enabled by default
+
+## Cost Optimization
+
+- Implement aggressive lifecycle policies for development repositories
+- Use lifecycle policies to transition old images to cheaper storage
+- Monitor repository storage usage with CloudWatch metrics
+- Delete unused repositories regularly
+- Consider image deduplication for similar base images
+
+## Monitoring and Alerting
+
+- Set up CloudWatch alarms for repository metrics
+- Monitor image scan results for vulnerabilities
+- Track repository storage costs
+- Alert on failed image pushes or pulls
+- Monitor cross-account access patterns
+
+## Integration with CI/CD
+
+### GitHub Actions Example
+
+```yaml
+name: Build and Push to ECR
+
+on:
+  push:
+    branches: [main, develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: my-app
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Authentication failures** - Check IAM permissions and AWS credentials
+2. **Image push failures** - Verify repository exists and has correct permissions
+3. **Cross-account access issues** - Review repository policies
+4. **Lifecycle policy not working** - Check policy syntax and rule priorities
+
+### Debugging Commands
+
+```bash
+# List ECR repositories
+aws ecr describe-repositories
+
+# Get repository policy
+aws ecr get-repository-policy --repository-name my-repo
+
+# List images in repository
+aws ecr list-images --repository-name my-repo
+
+# Get image scan results
+aws ecr describe-image-scan-findings --repository-name my-repo --image-id imageTag=latest
+
+# Get lifecycle policy
+aws ecr get-lifecycle-policy --repository-name my-repo
+
+# Test lifecycle policy
+aws ecr get-lifecycle-policy-preview --repository-name my-repo
+```
+
+## License
+
+This module is released under the MIT License. See LICENSE file for details.

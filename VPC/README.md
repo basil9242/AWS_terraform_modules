@@ -1,121 +1,383 @@
-## AWS VPC Terraform module
+# AWS VPC Terraform Module
 
-Terraform module which creates VPC resources on AWS.
-
-## Usage
-
-```hcl
-provider "aws" {
-    region = "ap-south-1"
-}
-
-module "vpc" {
-    source = "git::https://github.com/basil9242/AWS_terraform_modules.git//VPC"
-    vpc_name = "test_vpc"
-    vpc_cloudwatch_logs_group_name = "vpc_flow"
-    vpc_logs_role_name = "vpc_flow_role"
-    cidr_block_vpc = "10.0.0.0/16"
-    private_subnet = [
-        {
-            name = "private_subnet-1"
-            cidr_block = "10.0.3.0/24"
-            availability_zone  = "ap-south-1a"
-        },
-        {
-            name = "private_subnet-2"
-            cidr_block = "10.0.2.0/24"
-            availability_zone  = "ap-south-1b"
-        }
-    ]
-    public_subnet = [
-        {
-            name = "public_subnet-1"
-            cidr_block = "10.0.0.0/24"
-            availability_zone  = "ap-south-1c"
-        },
-        {
-            name = "public_subnet-2"
-            cidr_block = "10.0.1.0/24"
-            availability_zone  = "ap-south-1a"
-        }
-    ]
-}
-```
-
-This module is designed to provision a Virtual Private Cloud (VPC) in AWS. A VPC provides an isolated virtual network environment within the AWS ecosystem, allowing for custom-defined network configurations. This module will create a VPC with subnets, route tables, and internet gateways based on user specifications.
+A comprehensive Terraform module for creating and managing AWS VPC resources with best practices, including subnets, gateways, route tables, and VPC Flow Logs.
 
 ## Features
 
-1. Provision a new VPC.
-2. Create public and private subnets.
-3. Set up Route Tables.
-4. Configure Network Access Control Lists (ACLs).
-5. Establish an Internet Gateway.
-6. Enable NAT Gateway for private subnet instances to access the internet.
-7. Associate Elastic IP with NAT Gateway.
-8. Support for VPC Flow Logs for network traffic monitoring.
+- ✅ **Complete VPC Setup** with public and private subnets
+- ✅ **Internet Gateway** for public internet access
+- ✅ **NAT Gateways** for private subnet internet access
+- ✅ **Route Tables** with proper associations
+- ✅ **VPC Flow Logs** with CloudWatch integration
+- ✅ **KMS Encryption** for flow logs
+- ✅ **Multi-AZ Support** for high availability
+- ✅ **Comprehensive Tagging** support
+- ✅ **Variable Validation** for input safety
 
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                          VPC                                │
+│  ┌─────────────────┐              ┌─────────────────┐       │
+│  │  Public Subnet  │              │  Public Subnet  │       │
+│  │      AZ-1       │              │      AZ-2       │       │
+│  │  ┌───────────┐  │              │  ┌───────────┐  │       │
+│  │  │    NAT    │  │              │  │    NAT    │  │       │
+│  │  │  Gateway  │  │              │  │  Gateway  │  │       │
+│  │  └───────────┘  │              │  └───────────┘  │       │
+│  └─────────────────┘              └─────────────────┘       │
+│           │                                 │               │
+│  ┌─────────────────┐              ┌─────────────────┐       │
+│  │ Private Subnet  │              │ Private Subnet  │       │
+│  │      AZ-1       │              │      AZ-2       │       │
+│  └─────────────────┘              └─────────────────┘       │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │              Internet Gateway                       │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Usage
+
+### Basic VPC Setup
+
+```hcl
+module "vpc" {
+  source = "git::https://github.com/basil9242/AWS_terraform_modules.git//VPC"
+  
+  # VPC Configuration
+  vpc_name       = "my-vpc"
+  cidr_block_vpc = "10.0.0.0/16"
+  
+  # Subnets
+  public_subnet = [
+    {
+      name              = "public-subnet-1"
+      cidr_block        = "10.0.1.0/24"
+      availability_zone = "us-east-1a"
+    },
+    {
+      name              = "public-subnet-2"
+      cidr_block        = "10.0.2.0/24"
+      availability_zone = "us-east-1b"
+    }
+  ]
+  
+  private_subnet = [
+    {
+      name              = "private-subnet-1"
+      cidr_block        = "10.0.10.0/24"
+      availability_zone = "us-east-1a"
+    },
+    {
+      name              = "private-subnet-2"
+      cidr_block        = "10.0.20.0/24"
+      availability_zone = "us-east-1b"
+    }
+  ]
+  
+  tags = {
+    Environment = "production"
+    Project     = "my-project"
+  }
+}
+```
+
+### Advanced VPC with All Features
+
+```hcl
+module "vpc" {
+  source = "git::https://github.com/basil9242/AWS_terraform_modules.git//VPC"
+  
+  # VPC Configuration
+  vpc_name             = "production-vpc"
+  cidr_block_vpc       = "10.0.0.0/16"
+  vpc_instance_tenancy = "default"
+  
+  # DNS Configuration
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+  
+  # Gateway Configuration
+  create_internet_gateway = true
+  create_nat_gateway      = true
+  
+  # Flow Logs Configuration
+  enable_flow_logs           = true
+  flow_logs_retention_days   = 30
+  vpc_cloudwatch_logs_group_name = "vpc-flow-logs"
+  vpc_logs_role_name         = "vpc-flow-logs-role"
+  
+  # Public Subnets (Multi-AZ)
+  public_subnet = [
+    {
+      name              = "public-web-1a"
+      cidr_block        = "10.0.1.0/24"
+      availability_zone = "us-east-1a"
+    },
+    {
+      name              = "public-web-1b"
+      cidr_block        = "10.0.2.0/24"
+      availability_zone = "us-east-1b"
+    },
+    {
+      name              = "public-web-1c"
+      cidr_block        = "10.0.3.0/24"
+      availability_zone = "us-east-1c"
+    }
+  ]
+  
+  # Private Subnets (Multi-AZ)
+  private_subnet = [
+    {
+      name              = "private-app-1a"
+      cidr_block        = "10.0.10.0/24"
+      availability_zone = "us-east-1a"
+    },
+    {
+      name              = "private-app-1b"
+      cidr_block        = "10.0.20.0/24"
+      availability_zone = "us-east-1b"
+    },
+    {
+      name              = "private-db-1a"
+      cidr_block        = "10.0.30.0/24"
+      availability_zone = "us-east-1a"
+    },
+    {
+      name              = "private-db-1b"
+      cidr_block        = "10.0.40.0/24"
+      availability_zone = "us-east-1b"
+    }
+  ]
+  
+  # Tagging
+  environment = "production"
+  tags = {
+    Owner        = "platform-team"
+    CostCenter   = "infrastructure"
+    Compliance   = "required"
+    Backup       = "daily"
+  }
+}
+```
 
 ## Requirements
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.0 |
+| terraform | >= 1.0 |
+| aws | ~> 5.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.0.1 |
+| aws | ~> 5.0 |
 
-## Modules
+## Resources Created
 
-No modules.
-
-## Resources
-
-| Name | Type |
-|------|------|
-| [aws_cloudwatch_log_group.vpc_cloudwatch_logs_group](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
-| [aws_eip.nat](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
-| [aws_flow_log.vpc_flow_log](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/flow_log) | resource |
-| [aws_iam_role.vpc_logs_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
-| [aws_iam_role_policy.vpc_logs_iam_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
-| [aws_internet_gateway.igw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway) | resource |
-| [aws_internet_gateway_attachment.attach_igw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway_attachment) | resource |
-| [aws_kms_alias.alias](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_alias) | resource |
-| [aws_kms_key.vpc_kms_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key) | resource |
-| [aws_kms_key_policy.vpc_kms_key_ploicy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key_policy) | resource |
-| [aws_nat_gateway.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/nat_gateway) | resource |
-| [aws_route_table.main_route_table](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
-| [aws_route_table.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
-| [aws_route_table_association.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
-| [aws_route_table_association.public_subnet](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
-| [aws_subnet.vpc_private_subnet](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_subnet.vpc_public_subnet](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_vpc.vpc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc) | resource |
-| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
-| [aws_iam_policy_document.vpc_logs_assume_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
-| [aws_iam_policy_document.vpc_logs_assume_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| Resource | Description |
+|----------|-------------|
+| `aws_vpc` | Main VPC with DNS configuration |
+| `aws_subnet` | Public and private subnets across AZs |
+| `aws_internet_gateway` | Internet gateway for public access |
+| `aws_nat_gateway` | NAT gateways for private subnet internet access |
+| `aws_eip` | Elastic IPs for NAT gateways |
+| `aws_route_table` | Route tables for public and private subnets |
+| `aws_route_table_association` | Route table associations |
+| `aws_flow_log` | VPC Flow Logs (optional) |
+| `aws_cloudwatch_log_group` | CloudWatch log group for flow logs |
+| `aws_kms_key` | KMS key for flow log encryption |
+| `aws_iam_role` | IAM role for flow logs |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_cidr_block_vpc"></a> [cidr\_block\_vpc](#input\_cidr\_block\_vpc) | CIDR block for VPC | `string` | `""` | no |
-| <a name="input_enable_dns_hostnames"></a> [enable\_dns\_hostnames](#input\_enable\_dns\_hostnames) | A boolean flag to enable/disable DNS hostnames in the VPC | `bool` | `false` | no |
-| <a name="input_private_subnet"></a> [private\_subnet](#input\_private\_subnet) | cidr block, availability zone, name for private subnet | <pre>list(object({<br>      name = string<br>      cidr_block = string<br>      availability_zone = string<br>    }))</pre> | <pre>[<br>  {<br>    "availability_zone": "",<br>    "cidr_block": "",<br>    "name": ""<br>  }<br>]</pre> | no |
-| <a name="input_public_subnet"></a> [public\_subnet](#input\_public\_subnet) | cidr block, availability zone, name for public subnet | <pre>list(object({<br>      name = string<br>      cidr_block = string<br>      availability_zone = string<br>    }))</pre> | <pre>[<br>  {<br>    "availability_zone": "",<br>    "cidr_block": "",<br>    "name": ""<br>  }<br>]</pre> | no |
-| <a name="input_vpc_cloudwatch_logs_group_name"></a> [vpc\_cloudwatch\_logs\_group\_name](#input\_vpc\_cloudwatch\_logs\_group\_name) | vpc flow logs cloudwatch group name | `string` | `""` | no |
-| <a name="input_vpc_instance_tenancy"></a> [vpc\_instance\_tenancy](#input\_vpc\_instance\_tenancy) | A tenancy option for instances launched into the VPCu | `string` | `"default"` | no |
-| <a name="input_vpc_logs_role_name"></a> [vpc\_logs\_role\_name](#input\_vpc\_logs\_role\_name) | VPC flow logs IAM role | `string` | `""` | no |
-| <a name="input_vpc_name"></a> [vpc\_name](#input\_vpc\_name) | VPC name | `string` | `""` | no |
+| `vpc_name` | Name of the VPC | `string` | n/a | yes |
+| `cidr_block_vpc` | CIDR block for VPC | `string` | n/a | yes |
+| `public_subnet` | Public subnet configurations | `list(object)` | `[]` | no |
+| `private_subnet` | Private subnet configurations | `list(object)` | `[]` | no |
+| `vpc_instance_tenancy` | VPC instance tenancy | `string` | `"default"` | no |
+| `enable_dns_hostnames` | Enable DNS hostnames | `bool` | `true` | no |
+| `enable_dns_support` | Enable DNS support | `bool` | `true` | no |
+| `create_internet_gateway` | Create Internet Gateway | `bool` | `true` | no |
+| `create_nat_gateway` | Create NAT Gateways | `bool` | `true` | no |
+| `enable_flow_logs` | Enable VPC Flow Logs | `bool` | `true` | no |
+| `flow_logs_retention_days` | Flow logs retention period | `number` | `30` | no |
+| `vpc_cloudwatch_logs_group_name` | CloudWatch log group name for flow logs | `string` | n/a | yes (if flow logs enabled) |
+| `vpc_logs_role_name` | IAM role name for flow logs | `string` | n/a | yes (if flow logs enabled) |
+| `tags` | Resource tags | `map(string)` | `{}` | no |
+| `environment` | Environment name | `string` | `"dev"` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_private_subnet"></a> [private\_subnet](#output\_private\_subnet) | n/a |
-| <a name="output_public_subnet"></a> [public\_subnet](#output\_public\_subnet) | n/a |
-| <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | n/a |
+| `vpc_id` | VPC ID |
+| `vpc_arn` | VPC ARN |
+| `vpc_cidr_block` | VPC CIDR block |
+| `public_subnet_ids` | List of public subnet IDs |
+| `private_subnet_ids` | List of private subnet IDs |
+| `public_subnet_arns` | List of public subnet ARNs |
+| `private_subnet_arns` | List of private subnet ARNs |
+| `internet_gateway_id` | Internet Gateway ID |
+| `nat_gateway_ids` | List of NAT Gateway IDs |
+| `nat_gateway_public_ips` | List of NAT Gateway public IPs |
+| `public_route_table_id` | Public route table ID |
+| `private_route_table_ids` | List of private route table IDs |
+| `vpc_flow_log_id` | VPC Flow Log ID |
+| `vpc_flow_log_cloudwatch_log_group_name` | CloudWatch log group name for flow logs |
+
+## Examples
+
+### Three-Tier Architecture
+
+```hcl
+module "three_tier_vpc" {
+  source = "git::https://github.com/basil9242/AWS_terraform_modules.git//VPC"
+  
+  vpc_name       = "three-tier-vpc"
+  cidr_block_vpc = "10.0.0.0/16"
+  
+  # Web Tier (Public Subnets)
+  public_subnet = [
+    {
+      name              = "web-tier-1a"
+      cidr_block        = "10.0.1.0/24"
+      availability_zone = "us-east-1a"
+    },
+    {
+      name              = "web-tier-1b"
+      cidr_block        = "10.0.2.0/24"
+      availability_zone = "us-east-1b"
+    }
+  ]
+  
+  # App Tier + DB Tier (Private Subnets)
+  private_subnet = [
+    # Application Tier
+    {
+      name              = "app-tier-1a"
+      cidr_block        = "10.0.10.0/24"
+      availability_zone = "us-east-1a"
+    },
+    {
+      name              = "app-tier-1b"
+      cidr_block        = "10.0.20.0/24"
+      availability_zone = "us-east-1b"
+    },
+    # Database Tier
+    {
+      name              = "db-tier-1a"
+      cidr_block        = "10.0.30.0/24"
+      availability_zone = "us-east-1a"
+    },
+    {
+      name              = "db-tier-1b"
+      cidr_block        = "10.0.40.0/24"
+      availability_zone = "us-east-1b"
+    }
+  ]
+  
+  tags = {
+    Architecture = "three-tier"
+    Environment  = "production"
+  }
+}
+```
+
+### Development VPC (Cost Optimized)
+
+```hcl
+module "dev_vpc" {
+  source = "git::https://github.com/basil9242/AWS_terraform_modules.git//VPC"
+  
+  vpc_name       = "dev-vpc"
+  cidr_block_vpc = "10.1.0.0/16"
+  
+  # Single AZ for cost optimization
+  public_subnet = [
+    {
+      name              = "dev-public"
+      cidr_block        = "10.1.1.0/24"
+      availability_zone = "us-east-1a"
+    }
+  ]
+  
+  private_subnet = [
+    {
+      name              = "dev-private"
+      cidr_block        = "10.1.10.0/24"
+      availability_zone = "us-east-1a"
+    }
+  ]
+  
+  # Disable NAT Gateway for cost savings
+  create_nat_gateway = false
+  
+  # Shorter retention for dev environment
+  flow_logs_retention_days = 7
+  
+  environment = "development"
+  tags = {
+    CostOptimized = "true"
+    AutoShutdown  = "enabled"
+  }
+}
+```
+
+## Best Practices
+
+1. **Use multiple AZs** - Ensure high availability across availability zones
+2. **Plan CIDR blocks carefully** - Avoid overlapping with other VPCs or on-premises networks
+3. **Enable VPC Flow Logs** - Monitor network traffic for security and troubleshooting
+4. **Use consistent naming** - Follow naming conventions for easy resource identification
+5. **Implement proper tagging** - Enable cost allocation and resource management
+6. **Consider NAT Gateway costs** - Use single NAT Gateway for dev environments
+7. **Enable DNS hostnames** - Required for many AWS services
+
+## Security Considerations
+
+- VPC Flow Logs are encrypted with KMS
+- Private subnets have no direct internet access
+- NAT Gateways provide controlled outbound internet access
+- Security groups and NACLs should be configured separately
+- Consider VPC endpoints for AWS services to avoid internet routing
+
+## Cost Optimization
+
+- Use single NAT Gateway for development environments
+- Consider NAT instances for very low traffic scenarios
+- Implement appropriate flow log retention periods
+- Use resource tagging for cost allocation
+- Monitor data transfer costs between AZs
+
+## Troubleshooting
+
+### Common Issues
+
+1. **CIDR block conflicts** - Ensure no overlap with existing VPCs
+2. **Route table misconfigurations** - Verify routes are properly associated
+3. **NAT Gateway connectivity** - Check security groups and NACLs
+4. **DNS resolution issues** - Ensure DNS hostnames and support are enabled
+
+### Debugging Commands
+
+```bash
+# Check VPC configuration
+aws ec2 describe-vpcs --vpc-ids vpc-xxxxxxxxx
+
+# Check route tables
+aws ec2 describe-route-tables --filters "Name=vpc-id,Values=vpc-xxxxxxxxx"
+
+# Check NAT Gateway status
+aws ec2 describe-nat-gateways --filter "Name=vpc-id,Values=vpc-xxxxxxxxx"
+
+# Check VPC Flow Logs
+aws logs describe-log-groups --log-group-name-prefix vpc-flow-logs
+```
+

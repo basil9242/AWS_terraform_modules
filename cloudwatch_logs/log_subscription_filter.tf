@@ -1,5 +1,5 @@
 resource "aws_cloudwatch_log_subscription_filter" "cloudwatch_logfilter" {
-  count           = var.cloudwatch_log_subscription_filter_requried ? 1 : 0
+  count           = var.cloudwatch_log_subscription_filter_required ? 1 : 0
   name            = "cloudwatch_log_filter"
   role_arn        = aws_iam_role.iam_role_cloudwatch_filter[count.index].arn
   log_group_name  = aws_cloudwatch_log_group.cloudwatch_logs_group.name
@@ -9,7 +9,7 @@ resource "aws_cloudwatch_log_subscription_filter" "cloudwatch_logfilter" {
 }
 
 resource "aws_iam_role_policy" "iam_policy_for_cloudwatch" {
-  count = var.cloudwatch_log_subscription_filter_requried ? 1 : 0
+  count = var.cloudwatch_log_subscription_filter_required ? 1 : 0
   role  = aws_iam_role.iam_role_cloudwatch_filter[count.index].name
   policy = jsonencode({
     Version = "2012-10-17",
@@ -38,7 +38,7 @@ resource "aws_iam_role_policy" "iam_policy_for_cloudwatch" {
 }
 
 resource "aws_iam_role" "iam_role_cloudwatch_filter" {
-  count = var.cloudwatch_log_subscription_filter_requried ? 1 : 0
+  count = var.cloudwatch_log_subscription_filter_required ? 1 : 0
   name  = "iam_role_cloudwatch_filter"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
