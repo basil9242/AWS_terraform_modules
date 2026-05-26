@@ -22,9 +22,7 @@ module "devopsagent_basic" {
   source = "./"
 
   agent_space_name    = "my-devops-agent"
-  aws_region          = var.aws_region
-  service_account_id  = data.aws_caller_identity.current.account_id
-
+  aws_region          = "eu-central-1"
   tags = {
     Environment = "production"
     Project     = "devops"
