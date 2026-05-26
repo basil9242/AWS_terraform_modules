@@ -53,5 +53,4 @@ module "devopsagent_basic" {
 | <a name="input_agent_response_language"></a> [agent\_response\_language](#input\_agent\_response\_language) | The language for agent responses | `string` | `"en-US"` | no |
 | <a name="input_agent_space_name"></a> [agent\_space\_name](#input\_agent\_space\_name) | The name of the AgentSpace | `string` | `null` | yes |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region to deploy resources | `string` | `null` | yes |
-| <a name="input_service_account_id"></a> [service\_account\_id](#input\_service\_account\_id) | The AWS account ID for the service account | `string` | `null` | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags for services | `map(string)` | `{}` | no |
